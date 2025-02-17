@@ -6,7 +6,7 @@ extern SPI_HandleTypeDef hspi1; // or pass it as a parameter
 #define MAX11200_CS_GPIO_PORT  GPIOA
 #define MAX11200_CS_PIN        GPIO_PIN_4
 
-static inline void MAX11200_VS_Low(void){
+static inline void MAX11200_CS_Low(void){
     HAL_GPIO_WritePin(MAX11200_CS_GPIO_PORT, MAX11200_CS_PIN, GPIO_PIN_RESET);
 }
 
@@ -15,11 +15,11 @@ static inline void MAX11200_CS_High(void){
 }
 
 static inline uint8_t MAX11200_BuildReadCmd(uint8_t regAddr){
-    return (0x40U | (regAddr << 1));
+    return (MAX11200_START | MAX11200_MODE1 | MAX11200_READ | (regAddr << 1));
 }
 
 static inline uint8_t MAX11200_BuildWriteCmd(uint8_t regAddr){
-    return (0x80U | (regAddr << 1));
+    return (MAX11200_START | MAX11200_MODE1 | (regAddr << 1));
 }
 
 static void MAX11200_WriteReg8(uint8_t regAddr, uint8_t data){
@@ -31,7 +31,7 @@ static void MAX11200_WriteReg8(uint8_t regAddr, uint8_t data){
     MAX11200_CS_High();
 }
 
-static uint8_t MAX11200_ReadReg8(uint8_t, regAddr){
+static uint8_t MAX11200_ReadReg8(uint8_t regAddr){
     uint8_t cmd = MAX11200_BuildReadCmd(regAddr);
     uint8_t rxByte = 0x00;
 
@@ -51,11 +51,11 @@ static int32_t MAX11200_ReadReg24(uint8_t regAddr){
     MAX11200_CS_Low();
     HAL_SPI_Transmit(&hspi1, &cmd, 1, HAL_MAX_DELAY);
     HAL_SPI_Receive(&hspi1, buf, 3, HAL_MAX_DELAY);
-    MAX11200_CS_HIGH();
+    MAX11200_CS_High();
 
     // Combine 3 bytes into a 24-bit value
     // buf[0] = MSB, buf[1] = middle, buf[2] = LSB
-    result = ((int32_t)buf[0] << 16 | ((int32_t)buf[1] << 8) | (buf[2]));
+    result = (((int32_t)buf[0] << 16) | ((int32_t)buf[1] << 8) | (buf[2]));
 
     return result;
 }
@@ -69,22 +69,16 @@ void MAX11200_Init(void)
     /**********************************
       Read status and control registers 
      **********************************/
-    uint8_t stat = MAX11200_ReadReg(MAX11200_STAT_REG);
-    uint8_t ctrl1 = MAX11200_ReadReg(MAX11200_CTRL1_REG);
-    uint8_t ctrl2 = MAX11200_ReadReg(MAX11200_CTRL2_REG);
-    uint8_t ctrl3 = MAX11200_ReadReg(MAX11200_CTRL3_REG);
+    //uint8_t stat = MAX11200_ReadReg8(MAX11200_STAT_REG);
+    //uint8_t ctrl1 = MAX11200_ReadReg8(MAX11200_CTRL1_REG);
+    //uint8_t ctrl2 = MAX11200_ReadReg8(MAX11200_CTRL2_REG);
+    //uint8_t ctrl3 = MAX11200_ReadReg8(MAX11200_CTRL3_REG);
 
     /*************************
       Configure CTRL1 register
      *************************/
     uint8_t ctrl1 = 0;
-    // unipolar input
-    ctrl1 |= MAX11200_CTRL1_UB;
-    // Enable reference buffer and signal buffer
-    ctrl1 |= MAX11200_CTRL1_REFBUF | MAX11200_CTRL1_SIGBUF;
-    // Single-cycle mode
-    ctrl1 |= MAX11200_CTRL1_SCYCLE;
-    // LINEF=0 for 60 Hz rejection
+    ctrl1 |= MAX11200_CONFIG_CONVERSION_CONTINUOUS | MAX11200_CONFIG_UNIPOLAR | MAX11200_CONFIG_REFBUF_DISABLE | MAX11200_CONFIG_SIGBUF_DISABLE;
 
     MAX11200_WriteReg8(MAX11200_CTRL1_REG, ctrl1);
 
