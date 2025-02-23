@@ -5,8 +5,20 @@
 #include <stdbool.h>
 #include "stm32wlxx_hal.h"
 
+// Config data structure for the CTRL1 register
+typedef struct
+{
+    uint8_t scycle;             // Single-cycle or continuous
+    uint8_t format;             // Offset-binary or two's complement
+    uint8_t sigbuf;             // Signal buffer enable/disable
+    uint8_t refbuf;             // Reference buffer enable/disable
+    uint8_t extclk;             // Internal or external clock
+    uint8_t unipolar_bipolar;   // Unipolar or bipolar input range
+    uint8_t line_filter;        // 50 Hz or 60 Hz line filter
+} MAX11200_Config_Data;
+
 /***********************************
- * Register definitions
+ * Register definitions, command bytes, and macros
  ***********************************/
 /* Status register (read only)
    Contains bits on general chip operational status, e.g. Data Ready (DRDY) and error flags.
@@ -17,19 +29,19 @@
    | B7    | B6    | B5    | B4    | B3 | B2 | B1    | B0  | 
    | SYSOR | RATE2 | RATE1 | RATE0 | OR | UR | MSTAT | RDY |*/
 // SYSOR: system gain overrange bit. SYSOR=1 means system gain calibration over range
-#define MAX11200_CMD_SYSOR (1 << 7)
+#define MAX11200_STAT1_SYSOR (1 << 7)
 // RATE[2:0]: data rate bits. Rate corresponds to the result in the DATA register
-#define MAX11200_CMD_RATE0 (1 << 6)
-#define MAX11200_CMD_RATE1 (1 << 5)
-#define MAX11200_CMD_RATE2 (1 << 4)
+#define MAX11200_STAT1_RATE0 (1 << 6)
+#define MAX11200_STAT1_RATE1 (1 << 5)
+#define MAX11200_STAT1_RATE2 (1 << 4)
 // OR: overrange bit. OR=1 means conversion result exceeds max value.
-#define MAX11200_CMD_OR    (1 << 3)
+#define MAX11200_STAT1_OR    (1 << 3)
 // UR: underrange bit. UR=1 menas conversion result exceeds min value.
-#define MAX11200_CMD_UR    (1 << 2)
+#define MAX11200_STAT1_UR    (1 << 2)
 // MSTAT: measurement status bit. MSTAT=1 when measurement in progress. 
-#define MAX11200_CMD_MSTAT (1 << 1)
+#define MAX11200_STAT1_MSTAT (1 << 1)
 // RDY: ready bit. RDY=1 if conversion result is available.
-#define MAX11200_CMD_RDY   (1 << 0)
+#define MAX11200_STAT1_RDY   (1 << 0)
 
 /* Control 1 register (read/write)
    Contains bits that configure additional ADC funcionality, including
@@ -76,7 +88,6 @@
 #define MAX11200_CTRL2_DIO3  (1 << 2)
 #define MAX11200_CTRL2_DIO2  (1 << 1)
 #define MAX11200_CTRL2_DIO1  (1 << 0)
-
 
 /* Control 3 register (read/write)
    Contains bits that configure the MAX11210 programmable gain setting and the calibration register settings
@@ -126,9 +137,12 @@
   Command byte
 **************/
 #define MAX11200_START (1 << 7)
+#define MAX11200_MODE0 0x00
 #define MAX11200_MODE1 (1 << 6)
+#define MAX11200_WRITE 0x00
 #define MAX11200_READ (1 << 0)
 
+// User-friendly config bit definitions
 #define MAX11200_CONFIG_CONVERSION_CONTINUOUS 0x00
 #define MAX11200_CONFIG_CONVERSION_SINGLE (1 << 1)
 
@@ -155,6 +169,7 @@
 #define MAX11200_STAT_MEASURE_UNDER_RANGE (1 << 2)
 #define MAX11200_STAT_MEASURE_OVER_RANGE (1 << 3)
 
+// Data rate settings for single-cycle mode (SCYCLE=1)
 #define MAX11200_SCYCLE_RATE_1SPS   0x00
 #define MAX11200_SCYCLE_RATE_2p5SPS 0x01
 #define MAX11200_SCYCLE_RATE_5SPS   0x02
@@ -164,15 +179,62 @@
 #define MAX11200_SCYCLE_RATE_60SPS  0x06
 #define MAX11200_SCYCLE_RATE_120SPS 0x07
 
+// Data rate settings for continuous mode (SCYCLE=0)
 #define MAX11200_CONT_RATE_60SPS  0x04
 #define MAX11200_CONT_RATE_120SPS 0x05
 #define MAX11200_CONT_RATE_240SPS 0x06
 #define MAX11200_CONT_RATE_480SPS 0x07
 
-/******************** 
-  Function prototypes
- ********************/
+#define MAX11200_CMD_RATE0     0x01
+#define MAX11200_CMD_RATE1     0x02
+#define MAX11200_CMD_RATE2     0x04
+#define MAX11200_CMD_IMPD      0x08
+#define MAX11200_CMD_CAL1      0x20
+#define MAX11200_CMD_CAL0      0x10
+
+/* STAT1 REG BITS */
+#define MAX11200_STAT1_RDY     0x01
+#define MAX11200_STAT1_MSTAT   0x02
+#define MAX11200_STAT1_UR      0x04
+#define MAX11200_STAT1_OR      0x08
+#define MAX11200_STAT1_RATE0   0x10
+#define MAX11200_STAT1_RATE1   0x20
+#define MAX11200_STAT1_RATE2   0x40
+#define MAX11200_STAT1_SYSOR   0x80
+
+/************ 
+  Public API
+ ************/
+// Initialize internal driver state and initial registers
 void MAX11200_Init(void);
-int32_t MAX11200_ReadData24(void);
+
+// Set default fields in config struct
+void MAX11200_Init_Config(MAX11200_Config_Data *config);
+
+// Read CTRL1 config from device
+void MAX11200_Read_Config(MAX11200_Config_Data *config);
+
+// Write CTRL1 config to device
+void MAX11200_Write_Config(MAX11200_Config_Data *config);
+
+// Perform self-calibration (offset and gain)
+void MAX11200_Self_Calibration(uint32_t *calib_offset, uint32_t *calib_gain);
+
+// Read the status registers (STAT1)
+uint8_t MAX11200_Read_Stat(void);
+
+// Check if conversion data is ready (RDY=1)
+int32_t MAX11200_Conversion_Ready(void);
+
+// Check if conversion is in progress (MSTAT=1)
+int32_t MAX11200_Measure_In_Progress(void);
+
+// Start a single-cycle conversion at a specified rate
+// Block until complete
+uint32_t MAX11200_Convert(uint8_t rate);
+
+// Start a single-cycle conversion at a specified rate
+// Non-blocking
+void MAX11200_Start_Conversion(uint8_t rate);
 
 #endif
