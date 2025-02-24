@@ -16,7 +16,7 @@ typedef struct
     uint8_t ctrl2;
     uint8_t ctrl3;
     uint8_t stat1;
-} MAX11200_ctrl_stat_regs_t;
+} MAX11200_CtrlStat_Regs_t;
 
 static MAX11200_CtrlStat_Regs_t MAX11200_CtrlStat_Regs;
 
@@ -88,10 +88,10 @@ static int32_t MAX11200_ReadReg24(uint8_t regAddr){
 // Read control and status registers into MAX11200_CtrlStat_Regs
 static void MAX11200_ReadCtrlStatRegs()
 {
-    MAX11200_ctrl_stat_regs.ctrl1 = MAX11200_ReadReg8(MAX11200_CTRL1_REG);
-    MAX11200_ctrl_stat_regs.ctrl2 = MAX11200_ReadReg8(MAX11200_CTRL2_REG);
-    MAX11200_ctrl_stat_regs.ctrl3 = MAX11200_ReadReg8(MAX11200_CTRL3_REG);
-    MAX11200_ctrl_stat_regs.stat1 = MAX11200_ReadReg8(MAX11200_STAT1_REG);
+    MAX11200_CtrlStat_Regs.ctrl1 = MAX11200_ReadReg8(MAX11200_CTRL1_REG);
+    MAX11200_CtrlStat_Regs.ctrl2 = MAX11200_ReadReg8(MAX11200_CTRL2_REG);
+    MAX11200_CtrlStat_Regs.ctrl3 = MAX11200_ReadReg8(MAX11200_CTRL3_REG);
+    MAX11200_CtrlStat_Regs.stat1 = MAX11200_ReadReg8(MAX11200_STAT1_REG);
 }
 
 /******************
@@ -105,7 +105,7 @@ void MAX11200_Init(void)
     MAX11200_CS_High();
 
     // Read control/status reigisters
-    MAX11200_read_ctrl_stat_regs();
+    MAX11200_ReadCtrlStatRegs();
 }
 
 // Set default config struct fields
@@ -187,11 +187,11 @@ uint32_t MAX11200_Convert(uint8_t RATE)
 void MAX11200_Start_Conversion(uint8_t RATE)
 {
     // Ensure single-cycle mode is set
-    if((MAX11200_ctrl_stat_regs.ctrl1 & MAX11200_CTRL1_SCYCLE) == 0) {
+    if((MAX11200_CtrlStat_Regs.ctrl1 & MAX11200_CTRL1_SCYCLE) == 0) {
         uint8_t ctrl1 = MAX11200_ReadReg8(MAX11200_CTRL1_REG);
         ctrl1 |= MAX11200_CTRL1_SCYCLE;
         MAX11200_WriteReg8(MAX11200_CTRL1_REG, ctrl1);
-        MAX11200_ctrl_stat_regs.ctrl1 = ctrl1;
+        MAX11200_CtrlStat_Regs.ctrl1 = ctrl1;
     }
 
     // Build a command byte
@@ -207,7 +207,7 @@ void MAX11200_Self_Calibration(uint32_t *calib_offset, uint32_t *calib_gain)
     // Enable self calibration registers, disable system calibration
     uint8_t ctrl3 = MAX11200_CTRL3_NOSYSO | MAX11200_CTRL3_NOSYSG;
     MAX11200_WriteReg8(MAX11200_CTRL3_REG, ctrl3);
-    MAX11200_ctrl_stat_regs.ctrl3 = ctrl3;
+    MAX11200_CtrlStat_Regs.ctrl3 = ctrl3;
 
     // Build a command byte to start self calibration
     uint8_t cmd = (MAX11200_START | MAX11200_MODE0 | MAX11200_CMD_CAL0);
