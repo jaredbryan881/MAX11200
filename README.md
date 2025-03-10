@@ -87,7 +87,6 @@ MAX11200_Self_Calibration(&offset, &gain);
 
 ## Limitations
 - The driver uses a hard-coded SPI handle, so multiple ADCs or different SPI peripherals will require modification to accept an SPI handle as an argument.
-- Blocking SPI transfers.
 - Minimal error handling/reporting.
 - Haven't tested much on continuous mode.
 - No advanced features like GPIO usage on the MAX11200 or complicated calibration procedures.
@@ -96,7 +95,6 @@ MAX11200_Self_Calibration(&offset, &gain);
 - Add non-blocking/DMA support. DMA or interrupt-based SPI transfers would be much better for higher sample rates and to reduce CPU load.
 - Improve error handling.
 - Support multiple instances to help manage multiple MAX11200 devices.
-- RTOS integration.
 
 ## Licence
 This library is provided under the MIT licence.

@@ -5,4 +5,4 @@
 
 extern osMutexId_t spiMutex;
 
-#endif /* INC_SPIMUTEX_H_ */
+#endif
