@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "stm32wlxx_hal.h"
+#include "cmsis_os.h"
+#include "spiMutex.h"
 
 // Config data structure for the CTRL1 register
 typedef struct

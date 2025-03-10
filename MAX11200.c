@@ -48,10 +48,12 @@ static inline uint8_t MAX11200_BuildWriteCmd(uint8_t regAddr){
 static void MAX11200_WriteReg8(uint8_t regAddr, uint8_t data){
     uint8_t cmd = MAX11200_BuildWriteCmd(regAddr);
 
+    osMutexAcquire(spiMutex, osWaitForever);
     MAX11200_CS_Low();
     HAL_SPI_Transmit(&hspi1, &cmd, 1, HAL_MAX_DELAY);
     HAL_SPI_Transmit(&hspi1, &data, 1, HAL_MAX_DELAY);
     MAX11200_CS_High();
+    osMutexRelease(spiMutex);
 }
 
 // Read an 8-bit value from a specified register
@@ -59,10 +61,12 @@ static uint8_t MAX11200_ReadReg8(uint8_t regAddr){
     uint8_t cmd = MAX11200_BuildReadCmd(regAddr);
     uint8_t rxByte = 0x00;
 
+    osMutexAcquire(spiMutex, osWaitForever);
     MAX11200_CS_Low();
     HAL_SPI_Transmit(&hspi1, &cmd, 1, HAL_MAX_DELAY);
     HAL_SPI_Receive(&hspi1, &rxByte, 1, HAL_MAX_DELAY);
     MAX11200_CS_High();
+    osMutexRelease(spiMutex);
 
     return rxByte;
 }
@@ -73,10 +77,12 @@ static int32_t MAX11200_ReadReg24(uint8_t regAddr){
     uint8_t buf[3] = {0};
     int32_t result;
 
+    osMutexAcquire(spiMutex, osWaitForever);
     MAX11200_CS_Low();
     HAL_SPI_Transmit(&hspi1, &cmd, 1, HAL_MAX_DELAY);
     HAL_SPI_Receive(&hspi1, buf, 3, HAL_MAX_DELAY);
     MAX11200_CS_High();
+    osMutexRelease(spiMutex);
 
     // Combine 3 bytes into a 24-bit value
     // buf[0] = MSB, buf[1] = middle, buf[2] = LSB
@@ -177,7 +183,9 @@ int32_t MAX11200_Measure_In_Progress()
 uint32_t MAX11200_Convert(uint8_t RATE)
 {
     MAX11200_Start_Conversion(RATE);
-    while(!MAX11200_Conversion_Ready());
+    while(!MAX11200_Conversion_Ready()){
+        osDelay(pdMS_TO_TICKS(1));
+    }
 
     uint32_t val = MAX11200_ReadReg24(MAX11200_DATA_REG);
     return val;
@@ -196,12 +204,14 @@ void MAX11200_Start_Conversion(uint8_t RATE)
 
     // Build a command byte
     uint8_t cmd = (MAX11200_START | MAX11200_MODE0 | RATE);
+    osMutexAcquire(spiMutex, osWaitForever);
     MAX11200_CS_Low();
     HAL_SPI_Transmit(&hspi1, &cmd, 1, HAL_MAX_DELAY);
     MAX11200_CS_High();
+    osMutexRelease(spiMutex);
 }
 
-// Oerfirn a sekf0cakubratuib sequence (offset and gain)
+// Perform a self calibration sequence (offset and gain)
 void MAX11200_Self_Calibration(uint32_t *calib_offset, uint32_t *calib_gain)
 {
     // Enable self calibration registers, disable system calibration
@@ -211,12 +221,14 @@ void MAX11200_Self_Calibration(uint32_t *calib_offset, uint32_t *calib_gain)
 
     // Build a command byte to start self calibration
     uint8_t cmd = (MAX11200_START | MAX11200_MODE0 | MAX11200_CMD_CAL0);
+    osMutexAcquire(spiMutex, osWaitForever);
     MAX11200_CS_Low();
     HAL_SPI_Transmit(&hspi1, &cmd, 1, HAL_MAX_DELAY);
     MAX11200_CS_High();
+    osMutexRelease(spiMutex);
 
     // Self calibration takes ~300 ms, delay for 500
-    HAL_Delay(500);
+    osDelay(pdMS_TO_TICKS(500));
 
     *calib_offset = MAX11200_ReadReg24(MAX11200_SCOC_REG);
     *calib_gain = MAX11200_ReadReg24(MAX11200_SCGC_REG);
