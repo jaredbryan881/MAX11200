@@ -50,8 +50,8 @@ static void MAX11200_WriteReg8(uint8_t regAddr, uint8_t data){
 
     osMutexAcquire(spiMutex, osWaitForever);
     MAX11200_CS_Low();
-    HAL_SPI_Transmit(&hspi1, &cmd, 1, HAL_MAX_DELAY);
-    HAL_SPI_Transmit(&hspi1, &data, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&hspi1, &cmd, 1, 100);
+    HAL_SPI_Transmit(&hspi1, &data, 1, 100);
     MAX11200_CS_High();
     osMutexRelease(spiMutex);
 }
@@ -63,8 +63,8 @@ static uint8_t MAX11200_ReadReg8(uint8_t regAddr){
 
     osMutexAcquire(spiMutex, osWaitForever);
     MAX11200_CS_Low();
-    HAL_SPI_Transmit(&hspi1, &cmd, 1, HAL_MAX_DELAY);
-    HAL_SPI_Receive(&hspi1, &rxByte, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&hspi1, &cmd, 1, 100);
+    HAL_SPI_Receive(&hspi1, &rxByte, 1, 100);
     MAX11200_CS_High();
     osMutexRelease(spiMutex);
 
@@ -79,8 +79,8 @@ static int32_t MAX11200_ReadReg24(uint8_t regAddr){
 
     osMutexAcquire(spiMutex, osWaitForever);
     MAX11200_CS_Low();
-    HAL_SPI_Transmit(&hspi1, &cmd, 1, HAL_MAX_DELAY);
-    HAL_SPI_Receive(&hspi1, buf, 3, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&hspi1, &cmd, 1, 100);
+    HAL_SPI_Receive(&hspi1, buf, 3, 100);
     MAX11200_CS_High();
     osMutexRelease(spiMutex);
 
@@ -206,7 +206,7 @@ void MAX11200_Start_Conversion(uint8_t RATE)
     uint8_t cmd = (MAX11200_START | MAX11200_MODE0 | RATE);
     osMutexAcquire(spiMutex, osWaitForever);
     MAX11200_CS_Low();
-    HAL_SPI_Transmit(&hspi1, &cmd, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&hspi1, &cmd, 1, 100);
     MAX11200_CS_High();
     osMutexRelease(spiMutex);
 }
@@ -223,7 +223,7 @@ void MAX11200_Self_Calibration(uint32_t *calib_offset, uint32_t *calib_gain)
     uint8_t cmd = (MAX11200_START | MAX11200_MODE0 | MAX11200_CMD_CAL0);
     osMutexAcquire(spiMutex, osWaitForever);
     MAX11200_CS_Low();
-    HAL_SPI_Transmit(&hspi1, &cmd, 1, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(&hspi1, &cmd, 1, 100);
     MAX11200_CS_High();
     osMutexRelease(spiMutex);
 
