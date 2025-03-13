@@ -194,16 +194,6 @@ typedef struct
 #define MAX11200_CMD_CAL1      0x20
 #define MAX11200_CMD_CAL0      0x10
 
-/* STAT1 REG BITS */
-#define MAX11200_STAT1_RDY     0x01
-#define MAX11200_STAT1_MSTAT   0x02
-#define MAX11200_STAT1_UR      0x04
-#define MAX11200_STAT1_OR      0x08
-#define MAX11200_STAT1_RATE0   0x10
-#define MAX11200_STAT1_RATE1   0x20
-#define MAX11200_STAT1_RATE2   0x40
-#define MAX11200_STAT1_SYSOR   0x80
-
 /************ 
   Public API
  ************/

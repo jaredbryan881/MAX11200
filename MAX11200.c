@@ -5,7 +5,7 @@ extern SPI_HandleTypeDef hspi1; // or pass it as a parameter
 
 // Or whatever your hardware calls for
 #define MAX11200_CS_GPIO_PORT  GPIOA
-#define MAX11200_CS_PIN        GPIO_PIN_4
+#define MAX11200_CS_PIN        GPIO_PIN_11
 
 /************************************************
   Struct to hold control and status register info
