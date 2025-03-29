@@ -91,6 +91,11 @@ static int32_t MAX11200_ReadReg24(uint8_t regAddr){
     return result;
 }
 
+// Read the data register specifically
+int32_t MAX11200_ReadData24(void){
+    return MAX11200_ReadReg24(MAX11200_DATA_REG);
+}
+
 // Read control and status registers into MAX11200_CtrlStat_Regs
 static void MAX11200_ReadCtrlStatRegs()
 {

@@ -225,6 +225,9 @@ int32_t MAX11200_Measure_In_Progress(void);
 // Block until complete
 uint32_t MAX11200_Convert(uint8_t rate);
 
+// Read data register
+int32_t MAX11200_ReadData24(void);
+
 // Start a single-cycle conversion at a specified rate
 // Non-blocking
 void MAX11200_Start_Conversion(uint8_t rate);
