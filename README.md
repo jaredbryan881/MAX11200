@@ -36,7 +36,7 @@ config.format = MAX11200_CONFIG_FORMAT_OFFSET_BINARY;
 config.sigbuf = MAX11200_CONFIG_SIGBUF_DISABLE;
 config.refbuf = MAX11200_CONFIG_REFBUF_DISABLE;
 config.extclk = MAX11200_CONFIG_CLK_INTERNAL;
-config.unipolar_bipolar = MAX11200_CONFIG_UNIPOLAR;
+config.unipolar_bipolar = MAX11200_CONFIG_BIPOLAR;
 config.line_filter = MAX11200_CONFIG_LINEF_60HZ;
 ```
 
