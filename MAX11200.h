@@ -7,6 +7,13 @@
 #include "cmsis_os.h"
 #include "spiMutex.h"
 
+typedef struct
+{
+  SPI_HandleTypeDef *hspi;
+  GPIO_TypeDef *CS_GPIO_Port;
+  uint16_t CS_GPIO_Pin;
+} MAX11200_ADC;
+
 // Config data structure for the CTRL1 register
 typedef struct
 {
@@ -198,38 +205,38 @@ typedef struct
   Public API
  ************/
 // Initialize internal driver state and initial registers
-void MAX11200_Init(void);
+void MAX11200_Init(MAX11200_ADC *adc);
 
 // Set default fields in config struct
 void MAX11200_Init_Config(MAX11200_Config_Data *config);
 
 // Read CTRL1 config from device
-void MAX11200_Read_Config(MAX11200_Config_Data *config);
+void MAX11200_Read_Config(MAX11200_ADC *adc, MAX11200_Config_Data *config);
 
 // Write CTRL1 config to device
-void MAX11200_Write_Config(MAX11200_Config_Data *config);
+void MAX11200_Write_Config(MAX11200_ADC *adc, MAX11200_Config_Data *config);
 
 // Perform self-calibration (offset and gain)
-void MAX11200_Self_Calibration(uint32_t *calib_offset, uint32_t *calib_gain);
+void MAX11200_Self_Calibration(MAX11200_ADC *adc, uint32_t *calib_offset, uint32_t *calib_gain);
 
 // Read the status registers (STAT1)
-uint8_t MAX11200_Read_Stat(void);
+uint8_t MAX11200_Read_Stat(MAX11200_ADC *adc);
 
 // Check if conversion data is ready (RDY=1)
-int32_t MAX11200_Conversion_Ready(void);
+int32_t MAX11200_Conversion_Ready(MAX11200_ADC *adc);
 
 // Check if conversion is in progress (MSTAT=1)
-int32_t MAX11200_Measure_In_Progress(void);
+int32_t MAX11200_Measure_In_Progress(MAX11200_ADC *adc);
 
 // Start a single-cycle conversion at a specified rate
 // Block until complete
-uint32_t MAX11200_Convert(uint8_t rate);
+uint32_t MAX11200_Convert(MAX11200_ADC *adc, uint8_t rate);
 
 // Read data register
-int32_t MAX11200_ReadData24(void);
+int32_t MAX11200_ReadData24(MAX11200_ADC *adc);
 
 // Start a single-cycle conversion at a specified rate
 // Non-blocking
-void MAX11200_Start_Conversion(uint8_t rate);
+void MAX11200_Start_Conversion(MAX11200_ADC *adc, uint8_t rate);
 
 #endif
