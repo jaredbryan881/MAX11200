@@ -1,11 +1,6 @@
 #include "MAX11200.h"
 #include "stm32wlxx_hal.h"  // Or whatever MCU you're using, e.g. stm32f4xx_hal.h
-
-extern SPI_HandleTypeDef hspi1; // or pass it as a parameter
-
-// Or whatever your hardware calls for
-#define MAX11200_CS_GPIO_PORT  GPIOA
-#define MAX11200_CS_PIN        GPIO_PIN_11
+#include "main.h"
 
 /************************************************
   Struct to hold control and status register info
